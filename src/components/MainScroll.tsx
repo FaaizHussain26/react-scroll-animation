@@ -32,7 +32,7 @@ function MainScroll() {
       scrub: isLastRow ? 0.1 : 0.5,
       onUpdate: (self) => {
         const newSize = 20 + self.progress * 50;
-        const newHeight = 300 + self.progress * 500;
+        const newHeight = 300 + self.progress * 400;
 
         row.style.setProperty("--cell-size", newSize + "%");
         row.querySelectorAll(".holder-img").forEach((cell: any) => {
@@ -142,28 +142,27 @@ function MainScroll() {
 
   return (
     <div id="grid_projects">
-      <div className="">
-        {Object.entries(items).map(([rowKey, rowItems], index) => (
-          <div
-            className="grid-row"
-            id={`row-${index + 1}`}
-            key={rowKey}
-            ref={(el) => (rowRefs.current[`row-${index + 1}`] = el as any)}
-          >
-            {rowItems.map((item) => (
-              <div className="holder-img" key={item.id}>
-                <a href="#">
-                  <img
-                    src={item.image}
-                    alt={`Image ${item.id}`}
-                    loading="lazy"
-                  />
-                </a>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+      {Object.entries(items).map(([rowKey, rowItems], index) => (
+        <div
+          className="grid-row"
+          id={`row-${index + 1}`}
+          key={rowKey}
+          ref={(el) => (rowRefs.current[`row-${index + 1}`] = el as any)}
+        >
+          {rowItems.map((item) => (
+            <div className="holder-img" key={item.id}>
+              <a href="#">
+                <img
+                  src={item.image}
+                  alt={`Image ${item.id}`}
+                  loading="lazy"
+                  style={{ objectFit: "cover" }}
+                />
+              </a>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

@@ -6,10 +6,11 @@
 
 #grid_projects {
 width: 100%;
-background: #000;
+background: black;
 padding: 20px;
 overflow-x: hidden;
-height: 5042px;
+border-top: 20px solid #000;
+border-bottom: 20px solid #000;
 }
 
 .grid-row {
