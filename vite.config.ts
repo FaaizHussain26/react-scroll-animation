@@ -5,23 +5,20 @@ export default defineConfig({
   plugins: [react()],
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
-    'process.env': {}
   },
   build: {
     lib: {
-      entry: 'src/main.jsx',
+      entry: 'src/main.tsx',
       name: 'MyScrollComponent',
-      fileName: (format) => `my-scroll-component.${format}.js`,
+      fileName: () => 'my-scroll-component.js',
       formats: ['iife']
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
       output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM'
-        }
+        inlineDynamicImports: true,
+        assetFileNames: 'assets/[name][extname]'
       }
-    }
+    },
+    cssCodeSplit: false
   }
 })
