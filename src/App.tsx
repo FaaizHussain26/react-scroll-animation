@@ -1,10 +1,14 @@
-import './App.css'
-import MainScroll from './components/MainScroll'
+import "./App.css";
+import MainScroll from "./components/MainScroll";
 
 function App() {
   return (
-    <MainScroll />
-  )
+    <>
+      <div className="container" />
+      <MainScroll />
+      <div className="container" />
+    </>
+  );
 }
 
-export default App
+export default App;

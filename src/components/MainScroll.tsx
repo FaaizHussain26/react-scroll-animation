@@ -1,14 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useCallback } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from '@studio-freight/lenis';
-import React from 'react';
-import { items } from '../utils/items';
+import Lenis from "@studio-freight/lenis";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import React, { useEffect, useRef } from "react";
+import { items } from "../utils/items";
 
-
-
-// Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
 function MainScroll() {
@@ -16,34 +12,53 @@ function MainScroll() {
   const triggersRef = useRef([]);
   const lenisRef = useRef<Lenis | null>(null);
 
-  const createRowAnimation = useCallback((rowId: string, threshold: number, onThresholdReached: () => void) => {
+  const createRowAnimation = (
+    rowId: string,
+    threshold: number,
+    onThresholdReached: () => void,
+    isLastRow: boolean = false
+  ) => {
     const row = rowRefs.current[rowId];
-    if (!row) return;
+    if (!row) {
+      return;
+    }
+
+    let thresholdReached = false;
 
     const trigger = ScrollTrigger.create({
       trigger: row,
-      start: 'top 80%',
-      end: 'bottom 20%',
-      scrub: 0.5,
+      start: "top 80%",
+      end: "bottom 20%",
+      scrub: isLastRow ? 0.1 : 0.5,
       onUpdate: (self) => {
         const newSize = 20 + self.progress * 50;
         const newHeight = 300 + self.progress * 200;
 
-        row.style.setProperty('--cell-size', newSize + '%');
-        row.querySelectorAll('.holder-img').forEach((cell: any) => {
-          cell.style.setProperty('--cell-height', newHeight + 'px');
-          cell.style.height = newHeight + 'px';
+        row.style.setProperty("--cell-size", newSize + "%");
+        row.querySelectorAll(".holder-img").forEach((cell: any) => {
+          cell.style.setProperty("--cell-height", newHeight + "px");
+          cell.style.height = newHeight + "px";
         });
 
-        if (threshold && newSize >= threshold && onThresholdReached) {
+        if (
+          threshold &&
+          newSize >= threshold &&
+          !thresholdReached &&
+          onThresholdReached
+        ) {
+          thresholdReached = true;
+          onThresholdReached();
+        }
+
+        if (self.progress >= 0.5 && !thresholdReached && onThresholdReached) {
+          thresholdReached = true;
           onThresholdReached();
         }
       },
     });
 
     triggersRef.current.push(trigger as never);
-  }, [triggersRef]);
-
+  };
 
   useEffect(() => {
     // Initialize Lenis smooth scroll
@@ -60,37 +75,61 @@ function MainScroll() {
     }
     requestAnimationFrame(raf);
 
-    lenisRef?.current?.on('scroll', ScrollTrigger.update);
+    lenisRef?.current?.on("scroll", ScrollTrigger.update);
 
-    // Animation state
-    let row2Started = false;
-    let row3Started = false;
-    let row4Started = false;
-    let row5Started = false;
+    const totalRows = Object.keys(items).length;
+    const startedRows = new Set<string>();
 
-    // Row animation function
+    const thresholds = [50, 45, 40, 38, 35, 20];
 
-    createRowAnimation('row-1', 50, () => {
-      if (!row2Started) {
-        row2Started = true;
-        createRowAnimation('row-2', 45, () => {
-          if (!row3Started) {
-            row3Started = true;
-            createRowAnimation('row-3', 40, () => {
-              if (!row4Started) {
-                row4Started = true;
-                createRowAnimation('row-4', 38, () => {
-                  if (!row5Started) {
-                    row5Started = true;
-                    createRowAnimation('row-5', 35, () => {});
-                  }
-                });
-              }
-            });
-          }
-        });
+    const startNextRow = (currentRowIndex: number) => {
+      if (currentRowIndex >= totalRows) {
+        return;
       }
-    });
+
+      const rowId = `row-${currentRowIndex + 1}`;
+      const threshold = thresholds[currentRowIndex] || 30;
+
+      const rowElement = rowRefs.current[rowId];
+      if (!rowElement) {
+        console.log(`Row element ${rowId} not found, retrying...`);
+        setTimeout(() => startNextRow(currentRowIndex), 100);
+        return;
+      }
+
+      if (!startedRows.has(rowId)) {
+        startedRows.add(rowId);
+        console.log(`Creating animation for ${rowId}`);
+
+        const delay = currentRowIndex === totalRows - 1 ? 200 : 0;
+
+        setTimeout(() => {
+          createRowAnimation(
+            rowId,
+            threshold,
+            () => {
+              startNextRow(currentRowIndex + 1);
+            },
+            currentRowIndex === totalRows - 1
+          );
+        }, delay);
+      }
+    };
+
+    setTimeout(() => {
+      startNextRow(0);
+
+      setTimeout(() => {
+        if (startedRows.size === totalRows) {
+          console.log("Fallback: Forcing completion of last row animation");
+          const lastRowIndex = totalRows - 1;
+          const lastRowId = `row-${lastRowIndex + 1}`;
+          console.log(
+            `All rows animation completed! (fallback for ${lastRowId})`
+          );
+        }
+      }, 10000);
+    }, 100);
 
     return () => {
       triggersRef.current.forEach((trigger: any) => trigger?.kill());
@@ -102,7 +141,7 @@ function MainScroll() {
   }, []);
 
   return (
-    <div id="grid_projects" >
+    <div id="grid_projects">
       <div className="">
         {Object.entries(items).map(([rowKey, rowItems], index) => (
           <div
@@ -114,7 +153,11 @@ function MainScroll() {
             {rowItems.map((item) => (
               <div className="holder-img" key={item.id}>
                 <a href="#">
-                  <img src={item.image} alt={`Image ${item.id}`} loading="lazy" />
+                  <img
+                    src={item.image}
+                    alt={`Image ${item.id}`}
+                    loading="lazy"
+                  />
                 </a>
               </div>
             ))}
