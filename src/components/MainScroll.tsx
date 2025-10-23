@@ -32,7 +32,7 @@ function MainScroll() {
       scrub: isLastRow ? 0.1 : 0.5,
       onUpdate: (self) => {
         const newSize = 20 + self.progress * 50;
-        const newHeight = 300 + self.progress * 200;
+        const newHeight = 300 + self.progress * 500;
 
         row.style.setProperty("--cell-size", newSize + "%");
         row.querySelectorAll(".holder-img").forEach((cell: any) => {
